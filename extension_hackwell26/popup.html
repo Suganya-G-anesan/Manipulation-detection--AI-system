@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manipulation Detector</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- 🔥 HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div class="logo-icon">🔍</div>
+      <div class="logo-text">Manip<span>Detect</span> AI</div>
+    </div>
+
+    <!-- 📊 DASHBOARD -->
+    <div id="summary-dashboard" class="hidden">Mini Dashboard</div>
+
+    <!-- 🚀 BUTTON -->
+    <button id="check">Analyze Page</button>
+
+    <!-- ⏳ LOADER -->
+    <div id="loader" class="hidden">
+      <div class="spinner"></div>
+      <div>Analyzing content...</div>
+    </div>
+
+    <!-- 📦 RESULTS -->
+    <div id="result"></div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

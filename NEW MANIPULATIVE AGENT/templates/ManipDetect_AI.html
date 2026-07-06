@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ManipDetect AI — Agent Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{{url_for('static',path='css/style.css')}}?v={{ range(1,1000)|random }}">
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔍</div>
+      <div class="logo-text">Manip<span>Detect</span> AI</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <div class="nav-item active" data-view="chat" onclick="switchView('chat',this)">
+          <span class="nav-icon">💬</span><span class="nav-name">Chat Agent</span>
+        </div>
+        <div class="nav-item" data-view="dashboard" onclick="switchView('dashboard',this)">
+          <span class="nav-icon">📊</span><span class="nav-name">Dashboard</span>
+        </div>
+        <div class="nav-item" data-view="recents" onclick="switchView('recents',this)">
+          <span class="nav-icon">🕓</span><span class="nav-name">Recents</span>
+          <span class="nav-badge" id="recentsBadge"></span>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <span id="toggleIcon">◀</span>
+      <span class="sidebar-toggle-label">Collapse</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="back-btn" id="backBtn" onclick="collapseChart()" title="Back">◀</div>
+        <div>
+          <div class="topbar-title" id="topbarTitle">Chat Agent</div>
+          <div class="topbar-subtitle" id="topbarSub">Manipulative content detection · Real-time analysis</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill"><div class="status-dot"></div>System Online</div>
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatarBtn" onclick="toggleDropdown()" title="Account">👤</div>
+          <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-dropdown-header">
+              <div class="profile-name" id="profileName">Guest User</div>
+              <div class="profile-email" id="profileEmail">Not signed in</div>
+            </div>
+            <div class="profile-dropdown-item" onclick="showModal('login')">🔑 &nbsp;Sign In</div>
+            <div class="profile-dropdown-item" onclick="showModal('signup')">✨ &nbsp;Create Account</div>
+            <div class="profile-dropdown-item danger" onclick="logout()">🚪 &nbsp;Sign Out</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT VIEW -->
+    <div class="view active" id="view-chat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-icon">🔍</div>
+          <div class="welcome-title">Detect <span>Manipulation</span> with AI</div>
+          <div class="welcome-sub">Paste text, describe images, audio or video content. The AI agent will analyze and identify manipulative tactics, emotional triggers, and deceptive patterns.</div>
+          <div class="quick-prompts">
+            <div class="quick-prompt" onclick="sendQuick('Analyze this political speech for manipulative rhetoric')">🗣️ Analyze political speech</div>
+            <div class="quick-prompt" onclick="sendQuick('Detect emotional manipulation in this advertisement')">📢 Check advertisement</div>
+            <div class="quick-prompt" onclick="sendQuick('Identify dark patterns in this social media post')">📱 Social media post</div>
+            <div class="quick-prompt" onclick="sendQuick('What types of manipulation can you detect?')">ℹ️ What can you detect?</div>
+            <div class="quick-prompt" onclick="sendQuick('Show me an example manipulation analysis report')">📋 Example report</div>
+          </div>
+        </div>
+      </div>
+      <div class="input-area">
+        <!--preview container-->
+        <div id="filePreviewContainer" class="file-preview-container"></div>
+
+        <div class="input-row">
+          <select class="media-select" id="mediaType">
+            <option value="text">📝 Text</option>
+            <option value="image">🖼️ Image</option>
+            <option value="audio">🎙️ Audio</option>
+            <option value="video">🎥 Video</option>
+            <option value="agent">🤖 agent</option>
+          </select>
+          <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileUpload(event)" />
+            <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="Attach file">
+                🔗
+            </button>
+          <textarea class="chat-input" id="chatInput" rows="1"
+            placeholder="Describe or paste content to analyze for manipulation…"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <div class="input-actions">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+          </div>
+        </div>
+        <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view" id="view-dashboard">
+      <div class="dashboard-view">
+        <!-- ALL CHARTS -->
+        <div id="chartsAll">
+          <div class="dash-header" style="margin-bottom:20px">
+            <div>
+              <div class="dash-title">Detection Dashboard</div>
+              <div class="dash-subtitle">Click any chart to expand it · Real-time analytics</div>
+            </div>
+            <div class="dash-controls">
+              <button class="dash-btn active" onclick="toggleDashBtn(this)">Today</button>
+              <button class="dash-btn" onclick="toggleDashBtn(this)">7 Days</button>
+              <button class="dash-btn" onclick="toggleDashBtn(this)">30 Days</button>
+            </div>
+          </div>
+          <div class="metrics-row" style="margin-bottom:16px">
+            <div class="metric-card red"><div class="metric-label" >Total Analyzed</div><div class="metric-value" id="totalAnalyzed">0</div><div class="metric-delta up">↑ 18% from yesterday</div></div>
+            <div class="metric-card red"><div class="metric-label">Manipulation Detected</div><div class="metric-value" id="manipulationDetected">0</div><div class="metric-delta up">↑ 22.8% detection rate</div></div>
+            <div class="metric-card amber"><div class="metric-label">High Risk Alerts</div><div class="metric-value" id="highRisk">0</div><div class="metric-delta up">↑ 12 since yesterday</div></div>
+            <div class="metric-card green"><div class="metric-label">Avg. Confidence</div><div class="metric-value" id="avgConfidence">0%</div><div class="metric-delta down">↓ Stable</div></div>
+          </div>
+          <div class="charts-grid" style="margin-bottom:16px">
+            <div class="chart-card" >
+              <div class="chart-card-title">Detection Over Time <span style="font-size:10px;color:var(--accent);margin-left:6px">↗ tap to expand</span></div>
+              <div class="chart-card-sub">Manipulation detections per hour · Today</div>
+              <canvas id="lineChart" height="160"></canvas>
+            </div>
+            <div class="chart-card" >
+              <div class="chart-card-title">Media Type Breakdown <span style="font-size:10px;color:var(--accent);margin-left:6px">↗</span></div>
+              <div class="chart-card-sub">Analyzed content by type</div>
+              <canvas id="doughnutChart" height="160"></canvas>
+            </div>
+          </div>
+          <div class="charts-row2" style="margin-bottom:16px">
+            <div class="chart-card" >
+              <div class="chart-card-title">Top Tactics <span style="font-size:10px;color:var(--accent);margin-left:6px">↗</span></div>
+              <div class="chart-card-sub">Frequency this period</div>
+              <div id="tacticBars"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-title">Risk Distribution <span style="font-size:10px;color:var(--accent);margin-left:6px">↗</span></div>
+              <div class="chart-card-sub">Severity of detected cases</div>
+              <canvas id="barChart" height="180"></canvas>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-title">Manipulation Count by Media Type<span style="font-size:10px;color:var(--accent);margin-left:6px">↗</span></div>
+              <div class="chart-card-sub">Where content was sourced</div>
+              <canvas id="radarChart" height="180"></canvas>
+            </div>
+          </div>
+          <div class="chart-card" style="margin-bottom:4px">
+            <div class="chart-card-title">Recent Detections <span style="font-size:10px;color:var(--accent);margin-left:6px">↗ tap to expand</span></div>
+            <div class="chart-card-sub">Click any row to analyze in chat</div>
+            <div class="table-wrap">
+              <table class="det-table">
+                <thead><tr><th style="color:#4fc3f7;text-align: center;">Type</th><th style="color:#4fc3f7;text-align: center;">Manipulative</th><th style="color:#4fc3f7;text-align: center;">Technique</th><th style="color:#4fc3f7; text-align: center;">Result</th><th style="color:#4fc3f7;text-align: center;">Time</th></tr></thead>
+                <tbody id="detTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPANDED SINGLE CHART -->
+        <div class="chart-expanded" id="chartExpanded">
+          <div class="dash-header">
+            <div>
+              <div class="dash-title" id="expandedTitle">Chart</div>
+              <div class="dash-subtitle" id="expandedSub">Use the ◀ back button above to return</div>
+            </div>
+          </div>
+          <div class="chart-card" style="cursor:default;flex:1" id="expandedBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENTS VIEW -->
+    <div class="view" id="view-recents">
+      <div class="recents-view">
+        <div class="dash-header">
+          <div>
+            <div class="dash-title">Recent Searches</div>
+            <div class="dash-subtitle">Your last 50 analysis queries · Click any to re-run</div>
+          </div>
+          <button class="recent-clear-btn" onclick="clearRecents()">🗑 Clear History</button>
+        </div>
+        <div id="recentsList"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-card">
+    <div class="modal-close" onclick="hideModal()">✕</div>
+    <div class="modal-header">
+      <div class="modal-icon">🔍</div>
+      <div class="modal-title">Manip<span>Detect</span> AI</div>
+      <div class="modal-sub">Sign in to save history and access all features</div>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</div>
+      <div class="modal-tab" id="tabSignup" onclick="switchTab('signup')">Create Account</div>
+    </div>
+
+    <!-- Login -->
+    <div class="modal-form" id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="loginPass" type="password" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <div style="text-align:right;margin-top:-6px">
+        <span class="form-link" onclick="showToast('Password reset — connect your backend.')">Forgot password?</span>
+      </div>
+      <button class="form-btn" onclick="doLogin()">Sign In →</button>
+      <div class="form-divider">or continue with</div>
+      <div class="oauth-btns">
+        <button class="oauth-btn" onclick="doOAuth('Google')">🔵 Google</button>
+        <button class="oauth-btn" onclick="doOAuth('GitHub')">⚫ GitHub</button>
+      </div>
+      <div class="form-footer">No account? <span class="form-link" onclick="switchTab('signup')">Create one free</span></div>
+    </div>
+
+    <!-- Signup -->
+    <div class="modal-form" id="signupForm" style="display:none">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" id="signupFirst" type="text" placeholder="Alex" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" id="signupLast" type="text" placeholder="Smith" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input class="form-input" id="signupEmail" type="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <input 
+          class="form-input" 
+          id="signupPass" 
+          type="password" 
+          placeholder="Min. 8 characters"
+          onkeydown="if(event.key==='Enter')doSignup()" 
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Organisation (optional)</label>
+        <input 
+          class="form-input" 
+          id="signupOrg" 
+          type="text" 
+          placeholder="Company or team" 
+        />
+      </div>
+
+      <button class="form-btn" onclick="doSignup()">Create Account →</button>
+
+      <div class="form-footer">
+        Already have an account? 
+        <span class="form-link" onclick="switchTab('login')">Sign in</span>
+      </div>
+
+      <div class="form-footer" style="font-size:11px;color:var(--text3)">
+        By signing up you agree to our 
+        <span class="form-link">Terms</span> & 
+        <span class="form-link">Privacy Policy</span>.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="{{url_for('static',path='js/script.js')}}?v={{ range(1,1000)|random }}"></script>
+</body>
+</html>
